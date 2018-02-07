@@ -34,8 +34,8 @@ END
 
 begin transaction t1
 declare @Marker XML
-SET @Marker = 'XML'  
-;WITH XMLNAMESPACES ( DEFAULT 'http://tempuri.org/policy.xsd')
+SET @Marker = 'XML';
+WITH XMLNAMESPACES ( DEFAULT 'http://tempuri.org/policy.xsd')
 UPDATE table1 SET field0.modify(
 	'insert 		
 		sql:variable("@Marker1")
