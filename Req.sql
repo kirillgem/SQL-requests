@@ -53,3 +53,79 @@ WHERE cast(t1.field0 as nvarchar(max))NOT LIKE ''
 --commit transaction t1
 rollback transaction t1
 
+--Stored procedure compare 2 tables
+CREATE procedure [dbo].[SP_CompareTables] (
+ @table1 varchar(100),
+ @table2 varchar(100),
+ @table_colList varchar(3000) = NULL,
+ @whereClause varchar(3000) = NULL,
+ @orderByClause varchar(3000) = NULL,
+ @difference0 int = 0
+)
+AS
+  DECLARE @sql varchar(8000);
+  DECLARE @colList varchar(3000);
+BEGIN
+  if ( @table_colList is null Or @table_colList = '' )
+  begin
+    set @colList = '*';
+  end
+  else
+  begin
+    set @colList = @table_colList;
+  end
+  if ( @difference0 = 0 )
+  begin
+   set @sql =REPLACE(REPLACE(REPLACE('
+SELECT ''@table1'' AS TblName, *
+FROM (
+  SELECT @colList
+ FROM @table1
+ EXCEPT (
+   SELECT @colList 
+  FROM @table2)
+) x
+UNION ALL
+SELECT ''@table2'' AS TblName, *
+FROM (
+  SELECT @colList
+ FROM @table2
+ EXCEPT (
+   SELECT @colList
+  FROM @table1)
+) y', 
+'@table1', @table1),
+'@table2', @table2),
+'@colList', @colList);
+  end;
+  else
+  begin
+    set @sql =REPLACE(REPLACE(REPLACE('
+SELECT @colList
+  FROM @table1
+  INTERSECT (
+    SELECT @colList 
+ FROM @table2)', 
+'@table1', @table1),
+'@table2', @table2),
+'@colList', @colList);
+  end;
+  if ( @whereClause is not null And len(@whereClause) > 0 )
+  begin
+    set @sql = REPLACE(REPLACE('
+SELECT * FROM (@sql) v
+WHERE @whereClause', 
+'@sql', @sql),
+'@whereClause', @whereClause);
+  end
+  if ( @orderByClause is not null And len(@orderByClause) > 0 )
+  begin
+    set @sql = REPLACE(REPLACE('@sql 
+ORDER BY @orderByClause', 
+'@sql', @sql),
+'@orderByClause', @orderByClause);
+  end;
+  print @sql;
+  exec(@sql);
+  return 0;
+END
