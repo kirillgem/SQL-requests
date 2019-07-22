@@ -60,8 +60,7 @@ CREATE procedure [dbo].[SP_CompareTables] (
  @table_colList varchar(3000) = NULL,
  @whereClause varchar(3000) = NULL,
  @orderByClause varchar(3000) = NULL,
- @difference0 int = 0
-)
+ @difference0 int = 0)
 AS
   DECLARE @sql varchar(8000);
   DECLARE @colList varchar(3000);
@@ -77,22 +76,16 @@ BEGIN
   if ( @difference0 = 0 )
   begin
    set @sql =REPLACE(REPLACE(REPLACE('
-SELECT ''@table1'' AS TblName, *
-FROM (
-  SELECT @colList
- FROM @table1
+SELECT ''@table1'' AS TblName, * FROM (
+  SELECT @colList FROM @table1
  EXCEPT (
-   SELECT @colList 
-  FROM @table2)
+   SELECT @colList FROM @table2)
 ) x
 UNION ALL
-SELECT ''@table2'' AS TblName, *
-FROM (
-  SELECT @colList
- FROM @table2
+SELECT ''@table2'' AS TblName, * FROM (
+  SELECT @colList FROM @table2
  EXCEPT (
-   SELECT @colList
-  FROM @table1)
+   SELECT @colList FROM @table1)
 ) y', 
 '@table1', @table1),
 '@table2', @table2),
@@ -101,11 +94,9 @@ FROM (
   else
   begin
     set @sql =REPLACE(REPLACE(REPLACE('
-SELECT @colList
-  FROM @table1
+SELECT @colList FROM @table1
   INTERSECT (
-    SELECT @colList 
- FROM @table2)', 
+    SELECT @colList FROM @table2)', 
 '@table1', @table1),
 '@table2', @table2),
 '@colList', @colList);
@@ -113,16 +104,13 @@ SELECT @colList
   if ( @whereClause is not null And len(@whereClause) > 0 )
   begin
     set @sql = REPLACE(REPLACE('
-SELECT * FROM (@sql) v
-WHERE @whereClause', 
+SELECT * FROM (@sql) v WHERE @whereClause', 
 '@sql', @sql),
 '@whereClause', @whereClause);
   end
   if ( @orderByClause is not null And len(@orderByClause) > 0 )
   begin
-    set @sql = REPLACE(REPLACE('@sql 
-ORDER BY @orderByClause', 
-'@sql', @sql),
+    set @sql = REPLACE(REPLACE('@sql ORDER BY @orderByClause', '@sql', @sql),
 '@orderByClause', @orderByClause);
   end;
   print @sql;
